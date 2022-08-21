@@ -11,6 +11,9 @@ import os
 
 no_of_cores = os.cpu_count()
 
+if not os.path.exists("data"):
+    os.makedirs("data")
+
 def get_like_dislike_data_with_retries(word_page_link, char, max_retries=5):
     for _ in range(max_retries):
         try:
