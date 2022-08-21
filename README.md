@@ -13,7 +13,7 @@ Scraping Methodology:
 - On each thread iterates over all pages with that character
 - On each page iterates over all words
 - For each word iterates over all pages with word meanings for that word
-- Adds those word meanings in a CSV with additional data. The CSV is named data_{character}.csv and all logs are done in error_log_{char}.txt
+- Adds those word meanings in a CSV with additional data. The CSV is named data_{character}.csv and all logs are added in error_log_{char}.txt
 
 Note: Since Urban Dictionary is continously updating the results will be different across multiple runs!
 
