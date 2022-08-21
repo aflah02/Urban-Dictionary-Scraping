@@ -4,7 +4,7 @@ A scraper which scrapes every single word with every single definition present f
 
 Note: Since Urban Dictionary is continously updating the results will be different across multiple runs!
 
-(Currently running once done will add the dataset to maybe Kaggle and HF and share the link here)
+(Currently running, once done will add the dataset to maybe Kaggle and HF and share the link here)
 
 Todos:
 - Speed Up using Multi Threading (Tried and failed, so will have a look in the future)
