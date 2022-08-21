@@ -2,6 +2,8 @@
 
 A scraper which scrapes every single word with every single definition present from Urban Dictionary. It generates CSVs for every character separately with the columns - `'title', 'meaning', 'example', 'contributor', 'like', 'dislike'` 
 
+Note: Create a folder named data in the directory before running as otherwise it will silently end execution without any error log
+
 Features:
 - Sleeps and retries after waiting incases of connection error
 - Runs across multiple threads in parallel
