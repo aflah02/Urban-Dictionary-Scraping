@@ -5,17 +5,18 @@ import csv
 # from tqdm import tqdm
 # from tqdm import trange
 import time 
-import concurrent.futures
+from threading import Thread
+from multiprocessing.pool import ThreadPool as Pool
 import os 
 
 no_of_cores = os.cpu_count()
 
-def get_like_dislike_data_with_retries(word_page_link, max_retries=5):
+def get_like_dislike_data_with_retries(word_page_link, char, max_retries=5):
     for _ in range(max_retries):
         try:
             return get_like_dislike_data(word_page_link)
         except:
-            with open("error_log.txt", "a") as myfile:
+            with open(f"data/error_log_{char}.txt", "a") as myfile:
                 myfile.write("Error in get_like_dislike_data_with_retries for link " + word_page_link + "\n")
             time.sleep(600)
     return None, None
@@ -40,12 +41,12 @@ def get_like_dislike_data(word_page_link):
         dislikes.append(i["down"])
     return likes, dislikes
 
-def get_soup_for_a_char_for_a_given_page_num_with_retries(URL_for_a_char_for_a_given_page_num, max_retries=5):
+def get_soup_for_a_char_for_a_given_page_num_with_retries(URL_for_a_char_for_a_given_page_num, char, max_retries=5):
     for _ in range(max_retries):
         try:
             return get_soup_for_a_char_for_a_given_page_num(URL_for_a_char_for_a_given_page_num)
         except:
-            with open("error_log.txt", "a", encoding="utf-8") as myfile:
+            with open(f"data/error_log_{char}.txt", "a", encoding="utf-8") as myfile:
                 myfile.write("Error in get_soup_for_a_char_for_a_given_page_num_with_retries for link " + URL_for_a_char_for_a_given_page_num + "\n")
             time.sleep(600)
     return None
@@ -55,12 +56,12 @@ def get_soup_for_a_char_for_a_given_page_num(link):
     soup_for_a_char_for_a_given_page_num  = BeautifulSoup(page_for_a_char_for_a_given_page_num.content, "html.parser")
     return soup_for_a_char_for_a_given_page_num
 
-def get_soup_for_a_char_with_retries(link, max_retries=5):
+def get_soup_for_a_char_with_retries(link, char, max_retries=5):
     for _ in range(max_retries):
         try:
             return get_soup_for_a_char(link)
         except:
-            with open("error_log.txt", "a", encoding="utf-8") as myfile:
+            with open(f"data/error_log_{char}.txt", "a", encoding="utf-8") as myfile:
                 myfile.write("Error in get_soup_for_a_char_with_retries for link " + link + "\n")
             time.sleep(600)
     return None
@@ -70,12 +71,12 @@ def get_soup_for_a_char(link):
     soup_for_a_char  = BeautifulSoup(page_for_a_char.content, "html.parser")
     return soup_for_a_char
 
-def get_soup_for_word_with_retries(link, max_retries=5):
+def get_soup_for_word_with_retries(link, char, max_retries=5):
     for _ in range(max_retries):
         try:
             return get_soup_for_word(link)
         except:
-            with open("error_log.txt", "a", encoding="utf-8") as myfile:
+            with open(f"data/error_log_{char}.txt", "a", encoding="utf-8") as myfile:
                 myfile.write("Error in get_soup_for_word_with_retries for link " + link + "\n")
             time.sleep(600)
     return None
@@ -85,18 +86,17 @@ def get_soup_for_word(link):
     soup_for_word  = BeautifulSoup(page_for_word.content, "html.parser")
     return soup_for_word
 
-def get_soup_word_for_page_num_with_retries(link, max_retries=5):
+def get_soup_word_for_page_num_with_retries(link, char, max_retries=5):
     for _ in range(max_retries):
         try:
             return get_soup_word_for_page_num(link)
         except:
-            with open("error_log.txt", "a", encoding="utf-8" ) as myfile:
+            with open(f"data/error_log_{char}.txt", "a", encoding="utf-8" ) as myfile:
                 myfile.write("Error in get_soup_word_for_page_num_with_retries for link " + link + "\n")
             time.sleep(600)
     return None
 
-with open("error_log.txt", "w", encoding="utf-8") as myfile:
-    myfile.write("")
+
     
 def get_soup_word_for_page_num(link):
     page_word_for_page_num = requests.get(link)
@@ -104,17 +104,16 @@ def get_soup_word_for_page_num(link):
     return soup_word_for_page_num
 
 
-def scrape_all_of_urban_dictionary():
-    with open('data.csv', 'w', encoding='utf-8') as csvfile:
+def scrape_all_of_urban_dictionary(char):
+    with open(f'data/data_{char}.csv', 'w', encoding='utf-8') as csvfile:
         fieldnames = ['title', 'meaning', 'example', 'contributor', 'like', 'dislike']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         # Get all Upper Case English characters
-
-        ls_chars = string.ascii_uppercase + '*'
-
+        with open(f"data/error_log_{char}.txt", "w", encoding="utf-8") as myfile:
+            myfile.write("")
         BASE_URL = "https://www.urbandictionary.com/"
-
+        ls_chars = [char]
         all_titles = []
         all_word_meanings = []
         all_examples = []
@@ -124,14 +123,14 @@ def scrape_all_of_urban_dictionary():
         for char in (ls_chars):
             URL = f"https://www.urbandictionary.com/browse.php?character={char}"
             print(URL)
-            soup_for_a_char = get_soup_for_a_char_with_retries(URL)
+            soup_for_a_char = get_soup_for_a_char_with_retries(URL, char)
             if soup_for_a_char is None:
                 continue
             last_page_for_a_char  = int(soup_for_a_char.find_all("a", class_="px-3 py-1 rounded-full hover:bg-denim hover:text-white text-light-charcoal")[-1]['href'].split('=')[-1])
             for page_num_for_a_char in range(1, last_page_for_a_char + 1):
                 URL_for_a_char_for_a_given_page_num = f"https://www.urbandictionary.com/browse.php?character={char}&page={page_num_for_a_char}"
                 print(URL_for_a_char_for_a_given_page_num)
-                soup_for_a_char_for_a_given_page_num = get_soup_for_a_char_for_a_given_page_num_with_retries(URL_for_a_char_for_a_given_page_num)
+                soup_for_a_char_for_a_given_page_num = get_soup_for_a_char_for_a_given_page_num_with_retries(URL_for_a_char_for_a_given_page_num, char)
                 if soup_for_a_char_for_a_given_page_num is None:
                     continue
                 words_for_a_char_on_a_given_page_num = soup_for_a_char_for_a_given_page_num.find_all(class_="py-1 block text-denim dark:text-white break-all hover:text-limon-lime hover:underline")
@@ -140,7 +139,7 @@ def scrape_all_of_urban_dictionary():
                     word_link_for_words_for_a_char_on_a_given_page_num = BASE_URL + link_for_words_for_a_char_on_a_given_page_num
                     print(word_link_for_words_for_a_char_on_a_given_page_num)
 
-                    soup_for_word = get_soup_for_word_with_retries(word_link_for_words_for_a_char_on_a_given_page_num)
+                    soup_for_word = get_soup_for_word_with_retries(word_link_for_words_for_a_char_on_a_given_page_num, char)
                     if soup_for_word is None:
                         continue
 
@@ -153,11 +152,11 @@ def scrape_all_of_urban_dictionary():
                         word_page_link = word_link_for_words_for_a_char_on_a_given_page_num + f"&page={word_page_num}"
                         print(word_page_link)
 
-                        soup_word_for_page_num = get_soup_word_for_page_num_with_retries(word_page_link)
+                        soup_word_for_page_num = get_soup_word_for_page_num_with_retries(word_page_link, char)
                         if soup_word_for_page_num is None:
                             continue
 
-                        likes, dislikes = get_like_dislike_data_with_retries(word_page_link)
+                        likes, dislikes = get_like_dislike_data_with_retries(word_page_link, char)
                         if likes is None or dislikes is None:
                             continue
 
@@ -174,8 +173,8 @@ def scrape_all_of_urban_dictionary():
                                 writer.writerow({'title': i, 'meaning': j, 'example': k, 'contributor': l, 'like': m, 'dislike': n})
                             except:
                                 # Write Error to file
-                                with open('error_log.txt', 'a', encoding='utf-8') as f:
-                                    f.write(f"Error while writing {i},{j},{k},{l},{m},{n}\n")
+                                with open('error_log_{char}.txt', 'a', encoding='utf-8') as f:
+                                    f.write(f"data/error while writing {i},{j},{k},{l},{m},{n}\n")
                                 continue
                         all_titles.extend(titles)
                         all_word_meanings.extend(word_meanings)
@@ -192,10 +191,16 @@ def scrape_all_of_urban_dictionary():
 
 start_time = time.time() 
 
-# with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-#     executor.map(scrape_all_of_urban_dictionary)
+ls_chars = list(string.ascii_uppercase + '*')
+
+pool = Pool(os.cpu_count())
+
+for i in ls_chars:
+    pool.apply_async(scrape_all_of_urban_dictionary, (i,))
     
-scrape_all_of_urban_dictionary()
+# scrape_all_of_urban_dictionary()
+pool.close()
+pool.join()
 
 total_time = time.time() - start_time
 
