@@ -1,6 +1,6 @@
 # Urban Dictionary Scraper
 
-A scraper which scrapes every single word with every single definition present from Urban Dictionary. It generates CSVs for every character separately with the columns - `'title', 'meaning', 'example', 'contributor', 'like', 'dislike'` 
+A scraper which scrapes all of Urban Dictionary. It generates CSVs for every character separately with the columns - `'title', 'meaning', 'example', 'contributor', 'like', 'dislike'` 
 
 Features:
 - Scrapes data for every single entry on Urban Dictionary
